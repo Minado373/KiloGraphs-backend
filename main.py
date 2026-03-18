@@ -1,9 +1,14 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
+from database import Base, engine, get_db
+import models
+import schemas
+import crud
 
 app = FastAPI()
-
+Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,12 +24,23 @@ class LoginData(BaseModel):
     password: str
 
 
-@app.post("/login")
-def login(data: LoginData):
-    if data.username == "admin" and data.password == "1234":
-        return {"success": True}
+@app.post("/register")
+def register(data: schemas.RegisterData, db: Session = Depends(get_db)):
+    existing_user = crud.get_user_by_username(db, data.username)
 
-    raise HTTPException(
-        status_code=401,
-        detail="Nieprawidłowy login lub hasło"
-    )
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Użytkownik już istnieje")
+
+    crud.create_user(db, data.name, data.username, data.password)
+
+    return {"message": "Konto utworzone"}
+
+
+@app.post("/login")
+def login(data: schemas.LoginData, db: Session = Depends(get_db)):
+    user = crud.get_user_by_username(db, data.username)
+
+    if not user or not crud.verify_password(data.password, user.password):
+        raise HTTPException(status_code=401, detail="Nieprawidłowe dane")
+
+    return {"success": True}
