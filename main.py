@@ -19,28 +19,22 @@ app.add_middleware(
 )
 
 
-class LoginData(BaseModel):
-    username: str
-    password: str
-
 
 @app.post("/register")
 def register(data: schemas.RegisterData, db: Session = Depends(get_db)):
-    existing_user = crud.get_user_by_username(db, data.username)
-
+    existing_user = crud.get_user_by_email(db, data.email)
     if existing_user:
         raise HTTPException(status_code=400, detail="Użytkownik już istnieje")
 
-    crud.create_user(db, data.name, data.username, data.password)
-
-    return {"message": "Konto utworzone"}
+    user = crud.create_user(db, data.name, data.email, data.password)
+    return {"message": "Konto utworzone", "user_id": user.id}
 
 
 @app.post("/login")
 def login(data: schemas.LoginData, db: Session = Depends(get_db)):
-    user = crud.get_user_by_username(db, data.username)
+    user = crud.get_user_by_email(db, data.email)
 
-    if not user or not crud.verify_password(data.password, user.password):
+    if not user or not crud.verify_password(data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Nieprawidłowe dane")
 
-    return {"success": True}
+    return {"success": True, "user_id": user.id}
