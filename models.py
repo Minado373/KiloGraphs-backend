@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Float
 from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime
@@ -22,14 +22,14 @@ class Profile(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
-
     gender = Column(String)
     age = Column(Integer)
-    weight = Column(Integer)
-    height = Column(Integer)
+    weight = Column(Float)   
+    height = Column(Float)   
     goal = Column(String)
     activity_level = Column(String)
     additional_info = Column(Text)
+    calories = Column(Float) 
 
     user = relationship("User", back_populates="profile")
 
