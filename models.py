@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Float, func
 from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime
@@ -40,7 +40,7 @@ class DietPlan(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
 
-    date = Column(DateTime, default=datetime.utcnow)
+    date = Column(DateTime, server_default=func.now())
     target_calories = Column(Integer)
     target_water_ml = Column(Integer)
     meals_data = Column(Text)  
@@ -54,7 +54,7 @@ class TrainingPlan(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
 
-    generated_at = Column(DateTime, default=datetime.utcnow)
+    generated_at = Column(DateTime, server_default=func.now())
     days_data = Column(Text) 
 
     user = relationship("User", back_populates="training_plans")
