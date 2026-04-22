@@ -7,6 +7,8 @@ import schemas
 import crud
 from auth import create_access_token, get_current_user
 
+from ai_service import generate_plan
+from utils import calculate_calories, build_prompt
 
 Base.metadata.create_all(bind=engine)
 
@@ -96,3 +98,39 @@ def get_profile(
         raise HTTPException(status_code=404, detail="Profile not found")
 
     return profile
+
+@app.post("/generate-plan", response_model=schemas.FullPlanResponse)
+def generate_plan_endpoint(
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    user_id = user["user_id"]
+
+    profile = db.query(models.Profile).filter(models.Profile.user_id == user_id).first()
+
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    calories = calculate_calories(profile)
+
+    prompt = build_prompt(profile, calories)
+
+    diet, training = generate_plan(prompt)
+
+    db.add(models.DietPlan(
+        user_id=user_id,
+        target_calories=calories,
+        meals_data=diet
+    ))
+
+    db.add(models.TrainingPlan(
+        user_id=user_id,
+        days_data=training
+    ))
+
+    db.commit()
+
+    return {
+        "diet": diet,
+        "training": training
+    }
