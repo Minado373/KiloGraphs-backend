@@ -8,3 +8,4 @@ email-validator
 passlib[argon2]
 argon2-cffi
 python-jose[cryptography]
+google-generativeai
