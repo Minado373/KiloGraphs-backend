@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
@@ -120,12 +122,14 @@ def generate_plan_endpoint(
     db.add(models.DietPlan(
         user_id=user_id,
         target_calories=calories,
-        meals_data=diet
+        meals_data=diet,
+        date=datetime.now()
     ))
 
     db.add(models.TrainingPlan(
         user_id=user_id,
-        days_data=training
+        days_data=training,
+        generated_at=datetime.now()
     ))
 
     db.commit()
@@ -133,4 +137,21 @@ def generate_plan_endpoint(
     return {
         "diet": diet,
         "training": training
+    }
+
+@app.get("/my-plan/{user_id}")
+def get_my_plan(
+    user_id: int, 
+    db: Session = Depends(get_db), 
+    user=Depends(get_current_user)
+):
+    if user["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    diet = db.query(models.DietPlan).filter(models.DietPlan.user_id == user_id).order_by(models.DietPlan.id.desc()).first()
+    training = db.query(models.TrainingPlan).filter(models.TrainingPlan.user_id == user_id).order_by(models.TrainingPlan.id.desc()).first()
+
+    return {
+        "diet": diet.meals_data if diet else None,
+        "training": training.days_data if training else None
     }
