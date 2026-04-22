@@ -2,7 +2,7 @@ def calculate_calories(profile):
     if not profile.weight or not profile.height or not profile.age:
         return 2000
 
-     if profile.gender() == "male":
+     if profile.gender() == "Male":
         bmr = 10 * profile.weight + 6.25 * profile.height - 5 * profile.age + 5
     else:
         bmr = 10 * profile.weight + 6.25 * profile.height - 5 * profile.age - 161
