@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, Request, HTTPException, Depends
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, engine, get_db
