@@ -6,9 +6,16 @@ import models
 import schemas
 import crud
 from auth import create_access_token, get_current_user
+from dotenv import load_dotenv
+import os
 
 
 Base.metadata.create_all(bind=engine)
+
+load_dotenv()
+stripe_api_key = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 app = FastAPI(title="KiloGraphs API")
 
@@ -39,7 +46,8 @@ def login(data: schemas.LoginData, db: Session = Depends(get_db)):
 
     token = create_access_token({
         "user_id": user.id,
-        "email": user.email
+        "email": user.email,
+        "is_premium": user.is_premium
     })
 
     return {
@@ -96,3 +104,45 @@ def get_profile(
         raise HTTPException(status_code=404, detail="Profile not found")
 
     return profile
+
+@app.post("/create-checkout-session")
+def create_checkout(user=Depends(get_current_user)):
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price': 'price_1TOxgJ8MhBMmVHwX1GEvVJkM', 
+                'quantity': 1,
+            }],
+            mode='subscription', # Tryb subskrypcji
+            success_url=f"${FRONTEND_URL}/success",
+            cancel_url=f"${FRONTEND_URL}/cancel",
+            client_reference_id=str(user["user_id"]),
+            customer_email=user["email"]
+        )
+        return {"url": session.url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/stripe-webhook")
+async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
+    payload = await request.body()
+    sig_header = request.headers.get('stripe-signature')
+    
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, os.getenv("STRIPE_WEBHOOK_SECRET")
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Webhook Error: {str(e)}")
+
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        user_id = session.get('client_reference_id')
+        stripe_cust_id = session.get('customer')
+
+        if user_id:
+            crud.set_user_premium(db, user_id=int(user_id), stripe_cust_id=stripe_cust_id)
+            print(f"Baza Neon zaktualizowana dla użytkownika {user_id}")
+
+    return {"status": "success"}

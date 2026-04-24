@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Float, func
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Float, Boolean, func
 from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime
@@ -11,6 +11,9 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
     name = Column(String, nullable=False) 
+
+    stripe_customer_id = Column(String, nullable=True)
+    is_premium = Column(Boolean, default=False)
 
     profile = relationship("Profile", back_populates="user", uselist=False)
     diet_plans = relationship("DietPlan", back_populates="user")

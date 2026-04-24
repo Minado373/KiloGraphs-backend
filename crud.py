@@ -31,3 +31,11 @@ def create_user(db: Session, name: str, email: str, password: str):
     db.commit()
     db.refresh(user)
     return user
+
+def set_user_premium(db: Session, user_id: int, stripe_cust_id: str):
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        user.is_premium = True
+        user.stripe_customer_id = stripe_cust_id
+        db.commit()
+    return user

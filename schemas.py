@@ -14,6 +14,15 @@ class CaloriesCreate(BaseModel):
     user_id: int
     calories: float
 
+class UserOut(BaseModel):
+    id: int
+    name: str
+    email: EmailStr
+    is_premium: bool
+
+    class Config:
+        from_attributes = True
+
 class ProfileCreate(BaseModel):
     user_id: int
     gender: Optional[str] = "Male"
