@@ -24,9 +24,15 @@ FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 app = FastAPI(title="KiloGraphs API")
 
+origins = [
+    "https://rainbow-manatee-0ef83b.netlify.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:5500"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
