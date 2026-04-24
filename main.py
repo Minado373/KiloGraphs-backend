@@ -18,7 +18,7 @@ from utils import calculate_calories, build_prompt
 Base.metadata.create_all(bind=engine)
 
 load_dotenv()
-stripe_api_key = os.getenv("STRIPE_SECRET_KEY")
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 FRONTEND_URL = os.getenv("FRONTEND_URL")
 
