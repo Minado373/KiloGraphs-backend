@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,6 +11,8 @@ from auth import create_access_token, get_current_user
 from dotenv import load_dotenv
 import os
 
+from ai_service import generate_plan
+from utils import calculate_calories, build_prompt
 
 Base.metadata.create_all(bind=engine)
 
@@ -34,7 +38,7 @@ def register(data: schemas.RegisterData, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="User already exists")
     user = crud.create_user(db, data.name, data.email, data.password)
-    # Zmieniono: "Konto utworzone" -> "Account created"
+    
     return {"message": "Account created", "user_id": user.id}
 
 @app.post("/login")
@@ -105,6 +109,7 @@ def get_profile(
 
     return profile
 
+
 @app.post("/create-checkout-session")
 def create_checkout(user=Depends(get_current_user)):
     try:
@@ -146,3 +151,78 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
             print(f"Baza Neon zaktualizowana dla użytkownika {user_id}")
 
     return {"status": "success"}
+
+@app.post("/generate-plan", response_model=schemas.FullPlanResponse)
+def generate_plan_endpoint(
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    user_id = user["user_id"]
+    
+    profile = db.query(models.Profile).filter(models.Profile.user_id == user_id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    current_calories = calculate_calories(profile)
+
+    seven_days_ago = datetime.now() - timedelta(days=7)
+
+
+    existing_diet = db.query(models.DietPlan).filter(
+        models.DietPlan.user_id == user_id,
+        models.DietPlan.date >= seven_days_ago
+    ).order_by(models.DietPlan.id.desc()).first()
+
+    existing_training = db.query(models.TrainingPlan).filter(
+        models.TrainingPlan.user_id == user_id,
+        models.TrainingPlan.generated_at >= seven_days_ago
+    ).order_by(models.TrainingPlan.id.desc()).first()
+
+    if existing_diet and existing_training:
+        if existing_diet.target_calories == current_calories:
+            return {
+                "diet": existing_diet.meals_data,
+                "training": existing_training.days_data
+            }
+    
+    prompt = build_prompt(profile, current_calories)
+    diet, training = generate_plan(prompt)
+
+    new_diet = models.DietPlan(
+        user_id=user_id,
+        target_calories=current_calories,
+        meals_data=diet,
+        date=datetime.now()
+    )
+    db.add(new_diet)
+
+    new_training = models.TrainingPlan(
+        user_id=user_id,
+        days_data=training,
+        generated_at=datetime.now()
+    )
+    db.add(new_training)
+
+    db.commit()
+
+    return {
+        "diet": diet,
+        "training": training
+    }
+
+@app.get("/my-plan/{user_id}")
+def get_my_plan(
+    user_id: int, 
+    db: Session = Depends(get_db), 
+    user=Depends(get_current_user)
+):
+    if user["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    diet = db.query(models.DietPlan).filter(models.DietPlan.user_id == user_id).order_by(models.DietPlan.id.desc()).first()
+    training = db.query(models.TrainingPlan).filter(models.TrainingPlan.user_id == user_id).order_by(models.TrainingPlan.id.desc()).first()
+
+    return {
+        "diet": diet.meals_data if diet else None,
+        "training": training.days_data if training else None
+    }

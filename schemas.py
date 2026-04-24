@@ -36,3 +36,7 @@ class ProfileCreate(BaseModel):
 
     class Config:
         from_attributes = True
+
+class FullPlanResponse(BaseModel):
+    diet: str
+    training: str
