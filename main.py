@@ -10,6 +10,7 @@ import crud
 from auth import create_access_token, get_current_user
 from dotenv import load_dotenv
 import os
+import stripe
 
 from ai_service import generate_plan
 from utils import calculate_calories, build_prompt
