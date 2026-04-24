@@ -24,6 +24,7 @@ Each meal must include: name, 3 main ingredients, macros (P/C/F), and calories.
 
 TRAINING:
 3 gym workouts
+EACH workout MUST contain EXACTLY 4 exercises.
 Each exercise must include: name, difficulty (easy/medium/hard), weight, sets, reps, and rest time.
 
 FORMAT:
