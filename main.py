@@ -121,8 +121,8 @@ def create_checkout(user=Depends(get_current_user)):
                 'quantity': 1,
             }],
             mode='subscription', # Tryb subskrypcji
-            success_url=f"{FRONTEND_URL}/success",
-            cancel_url=f"{FRONTEND_URL}/cancel",
+            success_url=f"{FRONTEND_URL.rstrip('/')}/success",
+            cancel_url=f"{FRONTEND_URL.rstrip('/')}/cancel",
             client_reference_id=str(user["user_id"]),
             customer_email=user["email"]
         )
@@ -144,8 +144,8 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
 
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
-        user_id = session.get('client_reference_id')
-        stripe_cust_id = session.get('customer')
+        user_id = session['client_reference_id']
+        stripe_cust_id =  session['customer'] 
 
         if user_id:
             crud.set_user_premium(db, user_id=int(user_id), stripe_cust_id=stripe_cust_id)
