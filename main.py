@@ -121,8 +121,8 @@ def create_checkout(user=Depends(get_current_user)):
                 'quantity': 1,
             }],
             mode='subscription', # Tryb subskrypcji
-            success_url=f"${FRONTEND_URL}/success",
-            cancel_url=f"${FRONTEND_URL}/cancel",
+            success_url=f"{FRONTEND_URL}/success",
+            cancel_url=f"{FRONTEND_URL}/cancel",
             client_reference_id=str(user["user_id"]),
             customer_email=user["email"]
         )
