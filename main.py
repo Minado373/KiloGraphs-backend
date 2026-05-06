@@ -123,7 +123,7 @@ def create_checkout(user=Depends(get_current_user)):
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
-                'price': 'price_1TOxgJ8MhBMmVHwX1GEvVJkM', 
+                'price': 'price_1TU7E98MhBMmVHwXyi5MCNhI', 
                 'quantity': 1,
             }],
             mode='subscription', # Tryb subskrypcji
