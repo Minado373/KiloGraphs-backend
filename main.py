@@ -233,3 +233,19 @@ def get_my_plan(
         "diet": diet.meals_data if diet else None,
         "training": training.days_data if training else None
     }
+
+@app.get("/user/{user_id}", response_model=schemas.UserOut)
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    if user["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    user_obj = db.query(models.User).filter(models.User.id == user_id).first()
+
+    if not user_obj:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user_obj
