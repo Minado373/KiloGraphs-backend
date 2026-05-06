@@ -20,12 +20,12 @@ DIET:
 7 days
 4 meals per day: Breakfast, Lunch, Dinner, Snack
 Each meal includes:
-Each meal must include: name, 3 main ingredients, macros (P/C/F), and calories.
+Each meal must include: name, 3 main ingredients WITH amounts, macros (P/C/F), calories, and a preparation instruction.
 
 TRAINING:
 3 gym workouts
 EACH workout MUST contain EXACTLY 4 exercises.
-Each exercise must include: name, difficulty (easy/medium/hard), weight, sets, reps, and rest time.
+Each exercise must include: name, difficulty (easy/medium/hard), weight, sets, reps, rest time and a description how to perform it.
 
 FORMAT:
 
@@ -34,7 +34,8 @@ FORMAT:
     "day_n": {
       "meal_type": {
         "name": "string",
-        "ingredients": ["item1", "item2", "item3"],
+        "ingredients": ["item1: amount", "item2: amount", "item3: amount"],
+        "instructions": "string how to prepare",
         "macros": { "p": 0, "c": 0, "f": 0 },
         "calories": 0
       }
@@ -48,7 +49,8 @@ FORMAT:
         "weight": "string",
         "sets": 0,
         "reps": 0,
-        "rest": "string"
+        "rest": "string",
+        "description": "string"
       }
     ]
   }
