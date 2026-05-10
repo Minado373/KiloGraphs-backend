@@ -165,6 +165,7 @@ def generate_plan_endpoint(
     user=Depends(get_current_user)
 ):
     user_id = user["user_id"]
+    is_premium = user.get("is_premium", False)
     
     profile = db.query(models.Profile).filter(models.Profile.user_id == user_id).first()
     if not profile:
@@ -174,6 +175,19 @@ def generate_plan_endpoint(
 
     seven_days_ago = datetime.now() - timedelta(days=7)
 
+    generation_count = db.query(models.DietPlan).filter(
+        models.DietPlan.user_id == user_id,
+        models.DietPlan.date >= seven_days_ago
+    ).count()
+
+    limit = 3 if is_premium else 1
+
+    if generation_count >= limit:
+        error_msg = (
+            f"Weekly limit of {limit} generation(s) reached. "
+            f"{'Upgrade to Premium for more!' if not is_premium else 'Please try again next week.'}"
+        )
+        raise HTTPException(status_code=429, detail=error_msg)
 
     existing_diet = db.query(models.DietPlan).filter(
         models.DietPlan.user_id == user_id,
