@@ -175,20 +175,6 @@ def generate_plan_endpoint(
 
     seven_days_ago = datetime.now() - timedelta(days=7)
 
-    generation_count = db.query(models.DietPlan).filter(
-        models.DietPlan.user_id == user_id,
-        models.DietPlan.date >= seven_days_ago
-    ).count()
-
-    limit = 3 if is_premium else 1
-
-    if generation_count >= limit:
-        error_msg = (
-            f"Weekly limit of {limit} generation(s) reached. "
-            f"{'Upgrade to Premium for more!' if not is_premium else 'Please try again next week.'}"
-        )
-        raise HTTPException(status_code=429, detail=error_msg)
-
     existing_diet = db.query(models.DietPlan).filter(
         models.DietPlan.user_id == user_id,
         models.DietPlan.date >= seven_days_ago
@@ -205,7 +191,21 @@ def generate_plan_endpoint(
                 "diet": existing_diet.meals_data,
                 "training": existing_training.days_data
             }
-    
+        
+    generation_count = db.query(models.DietPlan).filter(
+        models.DietPlan.user_id == user_id,
+        models.DietPlan.date >= seven_days_ago
+    ).count()
+
+    limit = 3 if is_premium else 1
+
+    if generation_count >= limit:
+        error_msg = (
+            f"Weekly limit of {limit} generation(s) reached. "
+            f"{'Upgrade to Premium for more!' if not is_premium else 'Please try again next week.'}"
+        )
+        raise HTTPException(status_code=429, detail=error_msg)
+
     prompt = build_prompt(profile, current_calories)
     diet, training = generate_plan(prompt)
 
