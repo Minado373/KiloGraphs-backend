@@ -18,7 +18,7 @@ Output ONLY a valid JSON object.
 
 DIET:
 7 days
-4 meals per day: Breakfast, Lunch, Dinner, Snack
+4 meals per day: Breakfast, Lunch, Dinner, Snack. Each meal calories should amount to the target calories with a +-100 margin of error.
 Each meal includes:
 Each meal must include: name, 3 main ingredients WITH amounts, macros (P/C/F), calories, and a preparation instruction.
 
