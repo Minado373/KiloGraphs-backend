@@ -9,8 +9,9 @@ def calculate_calories(profile):
 
     activity_map = {
         "0": 1.2,
-        "1": 1.55,
-        "2": 1.725
+        "1": 1.375,
+        "2": 1.55,
+        "3": 1.725
     }
 
     calories = bmr * activity_map.get(profile.activity_level, 1.2)
