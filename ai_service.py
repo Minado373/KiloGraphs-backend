@@ -15,10 +15,11 @@ NO markdown
 NO explanations
 Strict adherence to the provided schema.
 Output ONLY a valid JSON object.
+CALORIE ACCURACY: The sum of calories from all meals in a single day must EXACTLY equal the user's target calories. Adjust ingredient amounts precisely to hit the mathematical target.
 
 DIET:
 7 days
-4 meals per day: Breakfast, Lunch, Dinner, Snack. Each meal calories should amount to the target calories with a +-100 margin of error.
+4 meals per day: Breakfast, Lunch, Dinner, Snack. 
 Each meal includes:
 Each meal must include: name, 3 main ingredients WITH amounts, macros (P/C/F), calories, and a preparation instruction.
 
