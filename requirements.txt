@@ -1,7 +1,7 @@
 fastapi
 uvicorn
 sqlalchemy
-psycopg2-binary
+psycopg[binary]
 python-dotenv
 passlib[bcrypt]
 email-validator
@@ -10,4 +10,3 @@ argon2-cffi
 python-jose[cryptography]
 stripe
 google-generativeai
-psycopg2
